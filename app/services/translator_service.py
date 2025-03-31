@@ -14,11 +14,11 @@ def translate_to_language(text: str, target_language: str) -> str:
 {text}
 
 번역만 출력하고 다른 설명은 하지 마세요."""
-    return gemini._call(prompt)
+    # 번역 결과의 마지막 개행문자를 제거
+    return gemini._call(prompt).rstrip("\n")
 
 def is_korean_text(text: str) -> bool:
     """텍스트가 한국어인지 확인하는 함수"""
-    # 한글 유니코드 범위: AC00-D7A3 (가-힣)
     korean_char_pattern = re.compile(r'[가-힣]')
     korean_chars = korean_char_pattern.findall(text)
     
@@ -29,8 +29,10 @@ def is_korean_text(text: str) -> bool:
 
 def process_translation(text: str) -> str:
     """번역 처리 함수 (이전 버전 호환용)"""
-    # '$번역' 키워드 제거하고 텍스트 추출
-    clean_text = text.replace('$번역', '').strip()
+    # '$번역 ' (키워드와 한 칸 공백)을 제거하고 텍스트 추출
+    if not text.startswith('$번역 '):
+        return "번역할 텍스트가 없습니다. '$번역 [텍스트]' 형식으로 입력해주세요."
+    clean_text = text[len('$번역 '):].strip()
     
     if not clean_text:
         return "번역할 텍스트가 없습니다. '$번역 [텍스트]' 형식으로 입력해주세요."
