@@ -8,5 +8,5 @@ def extract_urls(text: str) -> list:
 
 def is_translation_request(text: str) -> bool:
     """텍스트가 번역 요청인지 확인하는 함수"""
-    # '$번역' 키워드가 포함되어 있는지 확인
-    return text.strip().startswith('$번역')
+    # '$번역 ' 키워드로 시작하는지 확인 (공백 포함)
+    return text.strip().startswith('$번역 ')
