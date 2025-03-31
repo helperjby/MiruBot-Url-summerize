@@ -1,0 +1,292 @@
+const scriptName = "test";
+
+// 봇이 동작할 채팅방 이름 배열 설정
+const allowedRooms = ["이주민단톡", "천호","1718수다" ]; // 여기에 허용할 채팅방 이름을 추가하세요
+
+function response(room, msg, sender, isGroupChat, replier, imageDB, packageName) {
+    // 허용된 채팅방인지 확인
+    if (!isAllowedRoom(room)) {
+        return; // 허용되지 않은 채팅방이면 아무 동작도 하지 않음
+    }
+    
+    // 1) URL 감지
+    var url = extractUrl(msg);
+    if (url) {
+        // 2) FastAPI 서버에 전달할 JSON 데이터 준비
+        var payload = { text: msg };
+        var payloadJson = JSON.stringify(payload);
+        // 3) FastAPI 서버 주소
+        var apiUrl = "http://192.168.0.133:8080/process-url";
+        // 4) POST 요청 및 응답 처리
+        var responseText = null;
+        try {
+            responseText = postToFastAPI(apiUrl, payloadJson);
+        } catch (e) {
+            // 네트워크/Jsoup 요청 중 예외가 발생하면 무응답
+            // (아무것도 출력하지 않음)
+            return;
+        }
+        // 5) 서버 응답 파싱
+        if (responseText) {
+            var json;
+            try {
+                json = JSON.parse(responseText);
+            } catch (e) {
+                // JSON 파싱 오류도 무응답 처리
+                return;
+            }
+            // headline, gemini_summary 추출
+            var headline = json.headline;
+            var summary = json.gemini_summary;
+            // 둘 다 null이면 무응답
+            if (headline === null && summary === null) {
+                return;
+            }
+            // 6) 요약 결과 전송
+            // headline 또는 summary가 있는 경우에만 전송
+            headline = headline || "제목 없음";
+            summary = summary || "요약 내용 없음";
+            replier.reply(headline + "\n\n" + summary);
+        }
+    }
+}
+
+// 허용된 채팅방인지 확인하는 함수
+function isAllowedRoom(room) {
+    return allowedRooms.includes(room);
+}
+
+// URL 추출 함수
+function extractUrl(text) {
+    var urlRegex = /https?:\/\/(?:[-\w.]|(?:%[\da-fA-F]{2}))+[^\s]*/g;
+    var match = text.match(urlRegex);
+    return (match && match.length > 0) ? match[0] : null;
+}
+
+// POST 요청 함수
+function postToFastAPI(url, payloadJson) {
+    try {
+        var Jsoup = org.jsoup.Jsoup;
+        var conn = Jsoup.connect(url)
+            .ignoreContentType(true)
+            .header("Content-Type", "application/json")
+            .requestBody(payloadJson)
+            .timeout(15 * 1000)
+            .post();
+        // 서버에서 받은 본문(JSON 문자열)
+        return conn.body().text();
+    } catch (e) {
+        // 오류 발생 시 무응답 처리를 위해
+        // headline, gemini_summary를 null로 설정
+        return JSON.stringify({
+            "headline": null,
+            "gemini_summary": null
+        });
+    }
+}
+
+// 아래 메서드는 액티비티 화면을 수정할 때 사용 (제공됨)
+function onCreate(savedInstanceState, activity) {
+    var textView = new android.widget.TextView(activity);
+    textView.setText("URL 요약 봇이 실행 중입니다!");
+    textView.setTextColor(android.graphics.Color.DKGRAY);
+    activity.setContentView(textView);
+}
+
+function onStart(activity) {}
+function onResume(activity) {}
+function onPause(activity) {}
+function onStop(activity) {}
+
+
+
+
+
+## 방이름을 if문 분기처리
+
+const scriptName = "test";
+
+// 이 부분은 배열로 관리해도 되고, 필요하다면 직접 if문에서 문자열로 비교해도 됩니다.
+const allowedRooms = ["이주민단톡", "천호", "1718수다"];
+
+function response(room, msg, sender, isGroupChat, replier, imageDB, packageName) {
+    // 간단한 if문 분기로 허용된 채팅방인지 확인
+    if (room !== "이주민단톡" && room !== "천호" && room !== "1718수다") {
+        return; // 허용되지 않은 채팅방이면 아무 동작도 하지 않음
+    }
+    
+    // 1) URL 감지
+    var url = extractUrl(msg);
+    if (url) {
+        // 2) FastAPI 서버에 전달할 JSON 데이터 준비
+        var payload = { text: msg };
+        var payloadJson = JSON.stringify(payload);
+        // 3) FastAPI 서버 주소
+        var apiUrl = "http://192.168.0.133:8080/process-url";
+        // 4) POST 요청 및 응답 처리
+        var responseText = null;
+        try {
+            responseText = postToFastAPI(apiUrl, payloadJson);
+        } catch (e) {
+            // 네트워크/Jsoup 요청 중 예외가 발생하면 무응답
+            // (아무것도 출력하지 않음)
+            return;
+        }
+        // 5) 서버 응답 파싱
+        if (responseText) {
+            var json;
+            try {
+                json = JSON.parse(responseText);
+            } catch (e) {
+                // JSON 파싱 오류도 무응답 처리
+                return;
+            }
+            // headline, gemini_summary 추출
+            var headline = json.headline;
+            var summary = json.gemini_summary;
+            // 둘 다 null이면 무응답
+            if (headline === null && summary === null) {
+                return;
+            }
+            // 6) 요약 결과 전송
+            // headline 또는 summary가 있는 경우에만 전송
+            headline = headline || "제목 없음";
+            summary = summary || "요약 내용 없음";
+            replier.reply(headline + "\n\n" + summary);
+        }
+    }
+}
+
+// URL 추출 함수
+function extractUrl(text) {
+    var urlRegex = /https?:\/\/(?:[-\w.]|(?:%[\da-fA-F]{2}))+[^\s]*/g;
+    var match = text.match(urlRegex);
+    return (match && match.length > 0) ? match[0] : null;
+}
+
+// POST 요청 함수
+function postToFastAPI(url, payloadJson) {
+    try {
+        var Jsoup = org.jsoup.Jsoup;
+        var conn = Jsoup.connect(url)
+            .ignoreContentType(true)
+            .header("Content-Type", "application/json")
+            .requestBody(payloadJson)
+            .timeout(15 * 1000)
+            .post();
+        // 서버에서 받은 본문(JSON 문자열)
+        return conn.body().text();
+    } catch (e) {
+        // 오류 발생 시 무응답 처리를 위해
+        // headline, gemini_summary를 null로 설정
+        return JSON.stringify({
+            "headline": null,
+            "gemini_summary": null
+        });
+    }
+}
+
+// 아래 메서드는 액티비티 화면을 수정할 때 사용 (제공됨)
+function onCreate(savedInstanceState, activity) {
+    var textView = new android.widget.TextView(activity);
+    textView.setText("URL 요약 봇이 실행 중입니다!");
+    textView.setTextColor(android.graphics.Color.DKGRAY);
+    activity.setContentView(textView);
+}
+
+function onStart(activity) {}
+function onResume(activity) {}
+function onPause(activity) {}
+function onStop(activity) {}
+
+
+## 정규식으로 room 구분
+const scriptName = "test";
+
+// 허용 단어가 "1718"이 들어간 방이라면 동작
+function response(room, msg, sender, isGroupChat, replier, imageDB, packageName) {
+    // 부분 매칭 (정규식 사용)
+    if (!/1718/.test(room)) {
+        // room 문자열 안에 "1718"이 없다면 종료
+        return;
+    }
+    
+    // 1) URL 감지
+    var url = extractUrl(msg);
+    if (url) {
+        // 2) FastAPI 서버에 전달할 JSON 데이터 준비
+        var payload = { text: msg };
+        var payloadJson = JSON.stringify(payload);
+        // 3) FastAPI 서버 주소 (예시)
+        var apiUrl = "http://192.168.0.133:8080/process-url";
+        // 4) POST 요청 및 응답 처리
+        var responseText = null;
+        try {
+            responseText = postToFastAPI(apiUrl, payloadJson);
+        } catch (e) {
+            // 네트워크/Jsoup 요청 중 예외가 발생하면 무응답
+            return;
+        }
+        // 5) 서버 응답 파싱
+        if (responseText) {
+            var json;
+            try {
+                json = JSON.parse(responseText);
+            } catch (e) {
+                // JSON 파싱 오류도 무응답 처리
+                return;
+            }
+            // headline, gemini_summary 추출
+            var headline = json.headline;
+            var summary = json.gemini_summary;
+            // 둘 다 null이면 무응답
+            if (headline === null && summary === null) {
+                return;
+            }
+            // 6) 요약 결과 전송
+            headline = headline || "제목 없음";
+            summary = summary || "요약 내용 없음";
+            replier.reply(headline + "\n\n" + summary);
+        }
+    }
+}
+
+// URL 추출 함수
+function extractUrl(text) {
+    var urlRegex = /https?:\/\/(?:[-\w.]|(?:%[\da-fA-F]{2}))+[^\s]*/g;
+    var match = text.match(urlRegex);
+    return (match && match.length > 0) ? match[0] : null;
+}
+
+// POST 요청 함수
+function postToFastAPI(url, payloadJson) {
+    try {
+        var Jsoup = org.jsoup.Jsoup;
+        var conn = Jsoup.connect(url)
+            .ignoreContentType(true)
+            .header("Content-Type", "application/json")
+            .requestBody(payloadJson)
+            .timeout(15 * 1000)
+            .post();
+        return conn.body().text();  // 서버에서 받은 본문(JSON 문자열)
+    } catch (e) {
+        // 오류 발생 시 headline, gemini_summary를 null로
+        return JSON.stringify({
+            "headline": null,
+            "gemini_summary": null
+        });
+    }
+}
+
+// 아래 메서드는 액티비티 화면을 수정할 때 사용 (제공됨)
+function onCreate(savedInstanceState, activity) {
+    var textView = new android.widget.TextView(activity);
+    textView.setText("URL 요약 봇이 실행 중입니다!");
+    textView.setTextColor(android.graphics.Color.DKGRAY);
+    activity.setContentView(textView);
+}
+
+function onStart(activity) {}
+function onResume(activity) {}
+function onPause(activity) {}
+function onStop(activity) {}
